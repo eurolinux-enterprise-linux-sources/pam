@@ -3,7 +3,7 @@
 Summary: An extensible library which provides authentication for applications
 Name: pam
 Version: 1.1.1
-Release: 22%{?dist}
+Release: 24%{?dist}
 # The library is BSD licensed with option to relicense as GPLv2+ - this option is redundant
 # as the BSD license allows that anyway. pam_timestamp and pam_console modules are GPLv2+,
 License: BSD and GPLv2+
@@ -63,6 +63,10 @@ Patch41: pam-1.1.1-group-syntax.patch
 Patch42: pam-1.1.1-man-faildelay.patch
 Patch43: pam-1.1.1-tally2-debug.patch
 Patch44: pam-1.1.1-tally2-executable.patch
+Patch45: pam-1.1.1-succeed-if-large-uid.patch
+Patch46: pam-1.1.1-unix-expiry.patch
+Patch47: pam-1.1.1-access-group-first.patch
+Patch48: pam-1.1.1-faillock-never.patch
 
 %define _sbindir /sbin
 %define _moduledir /%{_lib}/security
@@ -166,6 +170,10 @@ mv pam-redhat-%{pam_redhat_version}/* modules
 %patch42 -p1 -b .faildelay
 %patch43 -p1 -b .debug
 %patch44 -p1 -b .executable
+%patch45 -p1 -b .large-uid
+%patch46 -p1 -b .expiry
+%patch47 -p1 -b .group-first
+%patch48 -p1 -b .never
 
 libtoolize -f
 autoreconf
@@ -413,6 +421,16 @@ fi
 %doc doc/adg/*.txt doc/adg/html
 
 %changelog
+* Tue Dec 20 2016 Tomáš Mráz <tmraz@redhat.com> 1.1.1-24
+- pam_faillock: support permanent locking of user with
+  unlock_time=never option
+
+* Tue Nov  1 2016 Tomáš Mráz <tmraz@redhat.com> 1.1.1-23
+- pam_succeed_if: properly work with large uids
+- pam_unix: add no_pass_expiry option for ignoring password
+  expiration in crond and sshd with public key authentication
+- pam_access: check for (group) match first (#1359303)
+
 * Thu Jan  7 2016 Tomáš Mráz <tmraz@redhat.com> 1.1.1-22
 - pam_tally2: added no_lockf_timeout option, do not use it
 - pam_tally2: added debug option
