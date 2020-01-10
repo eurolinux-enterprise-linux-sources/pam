@@ -3,7 +3,7 @@
 Summary: An extensible library which provides authentication for applications
 Name: pam
 Version: 1.1.1
-Release: 20%{?dist}
+Release: 20%{?dist}.1
 # The library is BSD licensed with option to relicense as GPLv2+ - this option is redundant
 # as the BSD license allows that anyway. pam_timestamp and pam_console modules are GPLv2+,
 License: BSD and GPLv2+
@@ -57,6 +57,7 @@ Patch35: pam-1.1.1-selinux-canonicalize.patch
 Patch36: pam-1.1.1-access-netgroup.patch
 Patch37: pam-1.1.1-userdb-crypt-hash.patch
 Patch38: pam-1.1.1-opasswd-tolerant.patch
+Patch40: pam-1.1.1-cve-2015-3238.patch
 
 %define _sbindir /sbin
 %define _moduledir /%{_lib}/security
@@ -154,6 +155,7 @@ mv pam-redhat-%{pam_redhat_version}/* modules
 %patch36 -p1 -b .netgroup
 %patch37 -p1 -b .crypt-hash
 %patch38 -p1 -b .opasswd-tolerant
+%patch40 -p1 -b .password-limit
 
 libtoolize -f
 autoreconf
@@ -398,6 +400,9 @@ fi
 %doc doc/adg/*.txt doc/adg/html
 
 %changelog
+* Tue Aug  4 2015 Tomáš Mráz <tmraz@redhat.com> 1.1.1-20.1
+- fix CVE-2015-3238 - DoS due to blocking pipe with very long password
+
 * Thu Jul 17 2014 Tomas Mraz <tmraz@redhat.com> 1.1.1-20
 - make pam_pwhistory and pam_unix tolerant of opasswd file corruption
 
