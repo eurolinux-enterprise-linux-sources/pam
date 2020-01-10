@@ -3,13 +3,13 @@
 Summary: An extensible library which provides authentication for applications
 Name: pam
 Version: 1.1.1
-Release: 17%{?dist}
+Release: 20%{?dist}
 # The library is BSD licensed with option to relicense as GPLv2+ - this option is redundant
 # as the BSD license allows that anyway. pam_timestamp and pam_console modules are GPLv2+,
 License: BSD and GPLv2+
 Group: System Environment/Base
-Source0: http://ftp.us.kernel.org/pub/linux/libs/pam/library/Linux-PAM-%{version}.tar.bz2
-Source1: http://ftp.us.kernel.org/pub/linux/libs/pam/library/Linux-PAM-%{version}.tar.bz2.sign
+Source0: http://www.linux-pam.org/library/Linux-PAM-%{version}.tar.bz2
+Source1: http://www.linux-pam.org/library/Linux-PAM-%{version}.tar.bz2.sign
 Source2: https://fedorahosted.org/releases/p/a/pam-redhat/pam-redhat-%{pam_redhat_version}.tar.bz2
 Source5: other.pamd
 Source6: system-auth.pamd
@@ -22,7 +22,6 @@ Source12: system-auth.5
 Source13: config-util.5
 Source14: 90-nproc.conf
 Patch1:  pam-1.0.90-redhat-modules.patch
-Patch2:  pam-1.0.91-std-noclose.patch
 Patch4:  pam-1.1.0-console-nochmod.patch
 Patch5:  pam-1.1.0-notally.patch
 Patch7:  pam-1.1.0-console-fixes.patch
@@ -44,6 +43,20 @@ Patch21: pam-1.1.1-unix-remember.patch
 Patch22: pam-1.1.1-pwhistory-fixes.patch
 Patch23: pam-1.1.1-env-fixes.patch
 Patch24: pam-1.1.1-tty-audit-echo.patch
+Patch25: pam-1.1.1-man-cracklib.patch
+Patch26: pam-1.1.1-std-noclose.patch
+Patch27: pam-1.1.1-expire-date.patch
+Patch28: pam-1.1.1-console-errmsg.patch
+Patch29: pam-1.1.1-crypt-null.patch
+Patch30: pam-1.1.1-man-maxsyslogins.patch
+Patch31: pam-1.1.1-access-resolving.patch
+Patch32: pam-1.1.1-limits-nofile.patch
+Patch33: pam-1.1.1-limits-check-process.patch
+Patch34: pam-1.1.1-man-dbsuffix.patch
+Patch35: pam-1.1.1-selinux-canonicalize.patch
+Patch36: pam-1.1.1-access-netgroup.patch
+Patch37: pam-1.1.1-userdb-crypt-hash.patch
+Patch38: pam-1.1.1-opasswd-tolerant.patch
 
 %define _sbindir /sbin
 %define _moduledir /%{_lib}/security
@@ -62,7 +75,7 @@ Requires: cracklib, cracklib-dicts >= 2.8
 Requires(post): coreutils, /sbin/ldconfig
 BuildRequires: autoconf >= 2.60
 BuildRequires: automake, libtool
-BuildRequires: bison, flex, sed
+BuildRequires: bison, flex, sed, flex-devel
 BuildRequires: cracklib-devel, cracklib-dicts >= 2.8
 BuildRequires: perl, pkgconfig, gettext
 %if %{WITH_AUDIT}
@@ -81,7 +94,7 @@ BuildRequires: kernel-headers >= 2.6.32-417
 BuildRequires: linuxdoc-tools, w3m, libxslt
 BuildRequires: docbook-style-xsl, docbook-dtds
 
-URL: http://www.us.kernel.org/pub/linux/libs/pam/index.html
+URL: http://www.linux-pam.org/
 
 %description
 PAM (Pluggable Authentication Modules) is a system security tool that
@@ -107,7 +120,6 @@ PAM-aware applications and modules for use with PAM.
 mv pam-redhat-%{pam_redhat_version}/* modules
 
 %patch1 -p1 -b .redhat-modules
-%patch2 -p1 -b .std-noclose
 %patch4 -p1 -b .nochmod
 %patch5 -p1 -b .notally
 %patch7 -p1 -b .console-fixes
@@ -128,6 +140,20 @@ mv pam-redhat-%{pam_redhat_version}/* modules
 %patch22 -p1 -b .pwhfixes
 %patch23 -p1 -b .envfixes
 %patch24 -p1 -b .tty-audit-echo
+%patch25 -p1 -b .man-cracklib
+%patch26 -p1 -b .std-noclose
+%patch27 -p1 -b .expire
+%patch28 -p1 -b .errmsg
+%patch29 -p1 -b .crypt-null
+%patch30 -p1 -b .maxsyslogins
+%patch31 -p1 -b .resolving
+%patch32 -p1 -b .nofile
+%patch33 -p1 -b .check-process
+%patch34 -p1 -b .dbsuffix
+%patch35 -p1 -b .canonicalize
+%patch36 -p1 -b .netgroup
+%patch37 -p1 -b .crypt-hash
+%patch38 -p1 -b .opasswd-tolerant
 
 libtoolize -f
 autoreconf
@@ -372,6 +398,28 @@ fi
 %doc doc/adg/*.txt doc/adg/html
 
 %changelog
+* Thu Jul 17 2014 Tomas Mraz <tmraz@redhat.com> 1.1.1-20
+- make pam_pwhistory and pam_unix tolerant of opasswd file corruption
+
+* Mon Jul 14 2014 Tomas Mraz <tmraz@redhat.com> 1.1.1-19
+- pam_userdb: allow any crypt hash algorithm to be used (#1119289)
+
+* Fri Jun 20 2014 Tomas Mraz <tmraz@redhat.com> 1.1.1-18
+- pam_cracklib: improve documentation (#889233)
+- unbreak authentication if ld.so.preload is not empty
+- correct off by one error in account expiration calculation (#947011)
+- pam_console_apply: do not print error if console.perms.d is empty
+- properly handle all cases where crypt() might return NULL (#1026203)
+- pam_limits: clarify documentation of maxsyslogins limit (#1028490)
+- pam_access: call DNS resolution only when necessary and cache
+  results (#1029817)
+- pam_limits: nofile applies to file descriptors not files (#1040664)
+- pam_limits: check whether the utmp login entry is valid (#1054936)
+- correct URLs in spec file (#1071770)
+- pam_userdb: correct the example in man page (#1078779)
+- pam_selinux: canonicalize username for getseuser() (#1083981)
+- pam_access: fix netgroup matching and @user@@netgroup parsing (#740233)
+
 * Fri Oct  4 2013 Tomas Mraz <tmraz@redhat.com> 1.1.1-17
 - pam_tty_audit: allow for runtime backwards compatibility with
   old kernels
