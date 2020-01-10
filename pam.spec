@@ -3,7 +3,7 @@
 Summary: An extensible library which provides authentication for applications
 Name: pam
 Version: 1.1.1
-Release: 20%{?dist}.1
+Release: 22%{?dist}
 # The library is BSD licensed with option to relicense as GPLv2+ - this option is redundant
 # as the BSD license allows that anyway. pam_timestamp and pam_console modules are GPLv2+,
 License: BSD and GPLv2+
@@ -57,7 +57,12 @@ Patch35: pam-1.1.1-selinux-canonicalize.patch
 Patch36: pam-1.1.1-access-netgroup.patch
 Patch37: pam-1.1.1-userdb-crypt-hash.patch
 Patch38: pam-1.1.1-opasswd-tolerant.patch
+Patch39: pam-1.1.1-tally2-no-timeout.patch
 Patch40: pam-1.1.1-cve-2015-3238.patch
+Patch41: pam-1.1.1-group-syntax.patch
+Patch42: pam-1.1.1-man-faildelay.patch
+Patch43: pam-1.1.1-tally2-debug.patch
+Patch44: pam-1.1.1-tally2-executable.patch
 
 %define _sbindir /sbin
 %define _moduledir /%{_lib}/security
@@ -155,7 +160,12 @@ mv pam-redhat-%{pam_redhat_version}/* modules
 %patch36 -p1 -b .netgroup
 %patch37 -p1 -b .crypt-hash
 %patch38 -p1 -b .opasswd-tolerant
+%patch39 -p1 -b .no-timeout
 %patch40 -p1 -b .password-limit
+%patch41 -p1 -b .group-syntax
+%patch42 -p1 -b .faildelay
+%patch43 -p1 -b .debug
+%patch44 -p1 -b .executable
 
 libtoolize -f
 autoreconf
@@ -234,6 +244,9 @@ rm -fr $RPM_BUILD_ROOT/usr/share/doc/pam
 
 # Create /lib/security in case it isn't the same as %{_moduledir}.
 install -m755 -d $RPM_BUILD_ROOT/lib/security
+
+# Add symlinked manual page for /etc/environment
+ln -sf ../man8/pam_env.8 $RPM_BUILD_ROOT%{_mandir}/man5/environment.5
 
 %find_lang Linux-PAM
 
@@ -400,7 +413,14 @@ fi
 %doc doc/adg/*.txt doc/adg/html
 
 %changelog
-* Tue Aug  4 2015 Tomáš Mráz <tmraz@redhat.com> 1.1.1-20.1
+* Thu Jan  7 2016 Tomáš Mráz <tmraz@redhat.com> 1.1.1-22
+- pam_tally2: added no_lockf_timeout option, do not use it
+- pam_tally2: added debug option
+- pam_tally2: do not create the log file as executable (#1186361)
+- add manpage symlink for environment(5) (#1110258)
+- pam_group: add support for %group syntax (#1114220)
+
+* Tue Aug  4 2015 Tomáš Mráz <tmraz@redhat.com> 1.1.1-21
 - fix CVE-2015-3238 - DoS due to blocking pipe with very long password
 
 * Thu Jul 17 2014 Tomas Mraz <tmraz@redhat.com> 1.1.1-20
