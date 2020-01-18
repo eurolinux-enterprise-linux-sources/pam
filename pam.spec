@@ -3,7 +3,7 @@
 Summary: An extensible library which provides authentication for applications
 Name: pam
 Version: 1.1.8
-Release: 22%{?dist}
+Release: 9%{?dist}
 # The library is BSD licensed with option to relicense as GPLv2+
 # - this option is redundant as the BSD license allows that anyway.
 # pam_timestamp, pam_loginuid, and pam_console modules are GPLv2+.
@@ -36,10 +36,9 @@ Patch9:  pam-1.1.6-noflex.patch
 Patch10: pam-1.1.3-nouserenv.patch
 Patch12: pam-1.1.3-faillock-screensaver.patch
 Patch13: pam-1.1.6-limits-user.patch
-Patch15: pam-1.1.8-full-relro.patch
+Patch15: pam-1.1.6-full-relro.patch
 # FIPS related - non upstreamable
 Patch20: pam-1.1.5-unix-no-fallback.patch
-Patch28: pam-1.1.1-console-errmsg.patch
 # Upstreamed partially
 Patch29: pam-1.1.8-pwhistory-helper.patch
 Patch31: pam-1.1.6-use-links.patch
@@ -48,27 +47,6 @@ Patch33: pam-1.1.8-translation-updates.patch
 Patch34: pam-1.1.8-canonicalize-username.patch
 Patch35: pam-1.1.8-cve-2013-7041.patch
 Patch36: pam-1.1.8-cve-2014-2583.patch
-Patch37: pam-1.1.8-lastlog-uninitialized.patch
-Patch38: pam-1.1.8-opasswd-tolerant.patch
-Patch39: pam-1.1.8-audit-grantor.patch
-Patch40: pam-1.1.8-man-dbsuffix.patch
-Patch41: pam-1.1.8-limits-check-process.patch
-Patch42: pam-1.1.8-limits-docfix.patch
-Patch43: pam-1.1.8-audit-user-mgmt.patch
-Patch44: pam-1.1.8-cve-2015-3238.patch
-Patch45: pam-1.1.8-unix-expiry.patch
-Patch46: pam-1.1.8-man-environment.patch
-Patch47: pam-1.1.8-loginuid-log-auditd.patch
-Patch48: pam-1.1.8-faillock-never.patch
-Patch49: pam-1.1.8-relax-audit.patch
-Patch50: pam-1.1.8-lastlog-localtime.patch
-Patch51: pam-1.1.8-man-delay.patch
-Patch52: pam-1.1.8-succeed-if-large-uid.patch
-Patch53: pam-1.1.8-access-update.patch
-Patch54: pam-1.1.8-man-space.patch
-Patch55: pam-1.1.8-tty-audit-uid-range.patch
-Patch56: pam-1.1.8-faillock-admin-group.patch
-Patch57: pam-1.1.8-mkhomedir-inroot.patch
 
 %define _pamlibdir %{_libdir}
 %define _moduledir %{_libdir}/security
@@ -142,7 +120,6 @@ mv pam-redhat-%{pam_redhat_version}/* modules
 %patch13 -p1 -b .limits
 %patch15 -p1 -b .relro
 %patch20 -p1 -b .no-fallback
-%patch28 -p1 -b .errmsg
 %patch29 -p1 -b .pwhhelper
 %patch31 -p1 -b .links
 %patch32 -p1 -b .tty-audit-init
@@ -150,27 +127,6 @@ mv pam-redhat-%{pam_redhat_version}/* modules
 %patch34 -p1 -b .canonicalize
 %patch35 -p1 -b .case
 %patch36 -p1 -b .timestamp-ruser
-%patch37 -p1 -b .uninitialized
-%patch38 -p1 -b .opasswd-tolerant
-%patch39 -p1 -b .grantor
-%patch40 -p1 -b .dbsuffix
-%patch41 -p1 -b .check-process
-%patch42 -p1 -b .docfix
-%patch43 -p1 -b .audit-user-mgmt
-%patch44 -p1 -b .password-limit
-%patch45 -p1 -b .expiry
-%patch46 -p1 -b .man-environment
-%patch47 -p1 -b .log-auditd
-%patch48 -p1 -b .never
-%patch49 -p1 -b .relax-audit
-%patch50 -p1 -b .localtime
-%patch51 -p1 -b .delay
-%patch52 -p1 -b .large-uid
-%patch53 -p1 -b .access-update
-%patch54 -p1 -b .space
-%patch55 -p1 -b .uid-range
-%patch56 -p1 -b .admin-group
-%patch57 -p1 -b .mkhomedir-inroot
 
 %build
 autoreconf -i
@@ -292,7 +248,7 @@ done
 %post
 /sbin/ldconfig
 if [ ! -e /var/log/tallylog ] ; then
-	/usr/bin/install -m 600 /dev/null /var/log/tallylog
+	install -m 600 /dev/null /var/log/tallylog
 fi
 
 %postun -p /sbin/ldconfig
@@ -419,60 +375,6 @@ fi
 %doc doc/adg/*.txt doc/adg/html
 
 %changelog
-* Fri Nov  3 2017 Tomáš Mráz <tmraz@redhat.com> 1.1.8-22
-- pam_mkhomedir: do not fail creating parent dir if in /
-
-* Thu Nov  2 2017 Tomáš Mráz <tmraz@redhat.com> 1.1.8-21
-- pam(8) Manual page missing space fix (#1382302)
-
-* Mon Oct  9 2017 Tomáš Mráz <tmraz@redhat.com> 1.1.8-20
-- pam_tty_audit: add support for uid range matching
-
-* Fri Sep  8 2017 Tomáš Mráz <tmraz@redhat.com> 1.1.8-19
-- pam_access: (group) match syntax is prioritized over network@netgroup
-  match (#1358881), add support for additional /etc/security/access.d/*.conf
-  files, improve documentation (#1421735)
-- pam_lastlog: fix pt_BR translation (#1185697)
-- pam_faillock: support admin_group with users equivalent to root in
-  faillock handling (#1285550)
-
-* Tue Jul 19 2016 Tomáš Mráz <tmraz@redhat.com> 1.1.8-18
-- pam_succeed_if: fix handling of large uids, tty, and rhost
-
-* Mon May 30 2016 Tomáš Mráz <tmraz@redhat.com> 1.1.8-17
-- fix pam_fail_delay() manual page (#1130053)
-
-* Thu Apr 28 2016 Tomáš Mráz <tmraz@redhat.com> 1.1.8-15
-- pam_faillock: support permanent locking of user with
-  unlock_time=never option
-
-* Fri Apr 22 2016 Tomáš Mráz <tmraz@redhat.com> 1.1.8-14
-- pam_unix: add no_pass_expiry option for ignoring password
-  expiration in crond and sshd with public key authentication
-- add manual page for environment(5) (#1110257)
-- pam_loginuid: log if auditd not detected
-- always ignore audit error when -EPERM is returned (#1287800)
-- pam_lastlog: fix possible NULL dereference when localtime fails (#1313537)
-
-* Tue Aug  4 2015 Tomáš Mráz <tmraz@redhat.com> 1.1.8-13
-- fix CVE-2015-3238 - DoS due to blocking pipe with very long password
-
-* Fri Oct 17 2014 Tomáš Mráz <tmraz@redhat.com> 1.1.8-12
-- use USER_MGMT type for auditing in the pam_tally2 and faillock
-  apps (#1151576)
-
-* Thu Sep 11 2014 Tomáš Mráz <tmraz@redhat.com> 1.1.8-11
-- be tolerant to corrupted opasswd file
-- audit the module names that granted access
-- pam_userdb: correct the example in man page (#1078784)
-- pam_limits: check whether the utmp login entry is valid (#1080023)
-- pam_console_apply: do not print error if console.perms.d is empty
-- pam_limits: nofile refers to open file descriptors (#1111220)
-- apply PIE and full RELRO to all binaries built
-
-* Mon Aug 25 2014 Tomáš Mráz <tmraz@redhat.com> 1.1.8-10
-- pam_lastlog: fix uninitialized access of parts of lastlog structure
-
 * Mon Mar 31 2014 Tomáš Mráz <tmraz@redhat.com> 1.1.8-9
 - fix CVE-2014-2583: potential path traversal issue in pam_timestamp
 - pam_pwhistory: call the helper if SELinux enabled
